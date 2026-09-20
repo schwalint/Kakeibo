@@ -1,0 +1,17 @@
+{
+  "name": "Kakeibo — Tri-Currency Tracker",
+  "short_name": "Kakeibo",
+  "description": "JPY / CLP / USD currency tool and Japan stipend, expense & savings tracker.",
+  "start_url": ".",
+  "scope": ".",
+  "id": "kakeibo-app",
+  "display": "standalone",
+  "background_color": "#120d09",
+  "theme_color": "#120d09",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
