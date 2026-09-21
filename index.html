@@ -67,15 +67,6 @@
     flex-shrink:0;
   }
   header.topbar .back-btn:hover{ background:var(--accent-soft); }
-  header.topbar h1{
-    font-size:15px;
-    margin:0;
-    flex:1;
-    min-width:0;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
   header.topbar .nav-links{
     display:flex;
     gap:2px;
@@ -84,6 +75,7 @@
     scrollbar-width:none;
     flex-shrink:1;
     min-width:0;
+    margin-left:auto;
   }
   header.topbar .nav-links::-webkit-scrollbar{ display:none; }
   header.topbar.hide-tabs .nav-links{ display:none; }
@@ -107,8 +99,8 @@
   header.topbar .settings-icon-btn{
     background:none;
     border:none;
-    font-size:19px;
-    padding:8px 9px;
+    font-size:16px;
+    padding:6px 7px;
     border-radius:8px;
     cursor:pointer;
     flex-shrink:0;
@@ -308,11 +300,10 @@
   }
   .summary-grid{
     display:grid;
-    grid-template-columns:repeat(3,1fr);
+    grid-template-columns:repeat(2,1fr);
     gap:6px;
     margin-bottom:14px;
   }
-  .summary-grid.cols-4{ grid-template-columns:repeat(4,1fr); }
   .summary-card{
     background:var(--card);
     border:1px solid var(--border);
@@ -336,16 +327,18 @@
     line-height:1.2;
   }
   .summary-card .value{
-    font-size:13px;
+    font-size:clamp(0.85rem, 4vw, 1.3rem);
     font-weight:700;
-    overflow-wrap:anywhere;
+    white-space:nowrap;
+    font-variant-numeric:tabular-nums;
     line-height:1.2;
   }
   .summary-card .sub{
-    font-size:9px;
+    font-size:clamp(0.65rem, 2.6vw, 0.85rem);
     color:var(--ink-soft);
     margin-top:2px;
-    overflow-wrap:anywhere;
+    white-space:nowrap;
+    font-variant-numeric:tabular-nums;
     line-height:1.2;
   }
   .summary-card.warn .value{ color:var(--red); }
@@ -617,40 +610,30 @@
     margin:0 0 16px;
   }
 
-  .dash-controls-row{
+  .card-header-toggle{
     display:flex;
     align-items:center;
-    gap:8px;
-    margin:0 0 16px;
-  }
-  .dash-controls-row .month-checkbox{
-    flex-shrink:0;
-    width:auto;
-    margin:0;
-    padding:0;
-    background:transparent;
+    justify-content:space-between;
+    width:100%;
+    background:none;
     border:none;
-    gap:0;
+    padding:0;
+    margin:0 0 14px;
+    cursor:pointer;
+    color:inherit;
+    font:inherit;
+    text-align:left;
   }
-  .dash-controls-row .month-checkbox span:last-child{
-    display:none;
-  }
-  .dash-controls-row .deficit-banner,
-  .dash-controls-row .ok-banner{
-    flex:1;
-    margin:0;
-    padding:9px 10px;
-    font-size:11px;
-    line-height:1.25;
-    white-space:normal;
-  }
-  .dash-controls-row .btn-small{
-    flex-shrink:0;
-    padding:9px 12px;
+  .card-header-toggle h3{ margin:0; }
+  .card-header-toggle .chevron{
+    color:var(--ink-soft);
     font-size:12px;
-    min-height:auto;
-    white-space:nowrap;
+    transition:transform .15s ease;
+    flex-shrink:0;
+    margin-left:10px;
   }
+  .card-header-toggle.is-collapsed .chevron{ transform:rotate(-90deg); }
+  .card-body.collapsed{ display:none; }
 
   table.expense-list{
     width:100%;
@@ -880,15 +863,14 @@
 <body>
 
 <header class="topbar" id="topbar">
-  <button type="button" class="back-btn" id="backBtn">&#8592;</button>
-  <h1 id="viewTitle">Kakeibo</h1>
+  <button type="button" class="settings-icon-btn" data-nav="settings" title="Settings">⚙️</button>
   <div class="nav-links">
     <button type="button" data-nav="landing">Home</button>
     <button type="button" data-nav="calculator">Exchange</button>
     <button type="button" data-nav="tracker-dashboard">Tracker</button>
     <button type="button" data-nav="listcalc">Lists</button>
   </div>
-  <button type="button" class="settings-icon-btn" data-nav="settings" title="Settings">⚙️</button>
+  <button type="button" class="back-btn" id="backBtn">&#8592;</button>
 </header>
 
 <main>
@@ -896,18 +878,18 @@
   <!-- LANDING -->
   <section class="view" id="view-landing">
     <div class="hero">
-      <h2>Kakeibo</h2>
+      <h2>家計簿</h2>
     </div>
     <div class="mode-grid">
-      <div class="mode-card" data-nav="calculator">
+      <div class="mode-card" data-nav="calculator" tabindex="0" role="button">
         <div class="icon">💱</div>
         <h3>Currency exchange</h3>
       </div>
-      <div class="mode-card" data-nav="tracker-dashboard">
+      <div class="mode-card" data-nav="tracker-dashboard" tabindex="0" role="button">
         <div class="icon">📒</div>
         <h3>Finance tracker</h3>
       </div>
-      <div class="mode-card" data-nav="listcalc">
+      <div class="mode-card" data-nav="listcalc" tabindex="0" role="button">
         <div class="icon">🧾</div>
         <h3>List calculator</h3>
       </div>
@@ -916,42 +898,90 @@
 
   <!-- SETTINGS -->
   <section class="view" id="view-settings">
-    <div class="card">
-      <h3>Exchange rates</h3>
-      <div class="field">
-        <label for="rateJpyClp">1 JPY = ? CLP</label>
-        <input type="text" inputmode="decimal" autocomplete="off" id="rateJpyClp">
+    <div class="card" data-section="rates">
+      <button type="button" class="card-header-toggle"><h3>Exchange rates</h3><span class="chevron">▾</span></button>
+      <div class="card-body">
+        <div class="field">
+          <label for="rateJpyClp">1 JPY = ? CLP</label>
+          <input type="text" inputmode="decimal" autocomplete="off" id="rateJpyClp">
+        </div>
+        <div class="field">
+          <label for="rateUsdJpy">1 USD = ? JPY</label>
+          <input type="text" inputmode="decimal" autocomplete="off" id="rateUsdJpy">
+        </div>
+        <div class="field">
+          <label for="rateUsdClp">1 USD = ? CLP</label>
+          <input type="text" inputmode="decimal" autocomplete="off" id="rateUsdClp">
+        </div>
+        <p class="rate-note">These rates drive the currency exchange page and every JPY⇄CLP conversion in the tracker (deficit drawdowns, savings totals, etc). Edit anytime — changes apply immediately.</p>
       </div>
-      <div class="field">
-        <label for="rateUsdJpy">1 USD = ? JPY</label>
-        <input type="text" inputmode="decimal" autocomplete="off" id="rateUsdJpy">
-      </div>
-      <div class="field">
-        <label for="rateUsdClp">1 USD = ? CLP</label>
-        <input type="text" inputmode="decimal" autocomplete="off" id="rateUsdClp">
-      </div>
-      <p class="rate-note">These rates drive the currency exchange page and every JPY⇄CLP conversion in the tracker (deficit drawdowns, savings totals, etc). Edit anytime — changes apply immediately.</p>
     </div>
 
-    <div class="card">
-      <h3>Defaults</h3>
-      <div class="field" style="margin-bottom:0;">
-        <label>Default fund for logged expenses</label>
-        <div class="segmented" id="defaultFundSegment">
-          <button type="button" class="seg-btn" data-fund="stipend">Stipend</button>
-          <button type="button" class="seg-btn" data-fund="savings">Savings</button>
+    <div class="card" data-section="defaults">
+      <button type="button" class="card-header-toggle"><h3>Defaults</h3><span class="chevron">▾</span></button>
+      <div class="card-body">
+        <div class="field">
+          <label>Default fund for logged expenses</label>
+          <div class="segmented" id="defaultFundSegment">
+            <button type="button" class="seg-btn" data-fund="stipend">Stipend</button>
+            <button type="button" class="seg-btn" data-fund="savings">Savings</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="defaultListBudget">Default list budget (JPY)</label>
+          <input type="text" inputmode="decimal" autocomplete="off" id="defaultListBudget" placeholder="0">
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label for="autoStipendDay">Stipend auto-received day</label>
+          <input type="number" inputmode="numeric" autocomplete="off" id="autoStipendDay" min="1" max="31" placeholder="None">
+          <div class="field-hint">On or after this day of the month, "stipend received" is checked automatically. Leave blank to disable.</div>
         </div>
       </div>
     </div>
 
-    <div class="card">
-      <h3>Data</h3>
-      <p class="rate-note" style="margin-top:0;">Everything is stored locally in this browser. Export a backup, or import a previously saved file.</p>
-      <div class="settings-actions">
-        <button type="button" class="btn" id="exportBtn">⬇ Export JSON</button>
-        <button type="button" class="btn secondary" id="importBtn">⬆ Import JSON</button>
-        <button type="button" class="btn danger btn-full" id="resetBtn">Reset all data</button>
-        <input type="file" id="importFileInput" accept="application/json">
+    <div class="card" data-section="financial">
+      <button type="button" class="card-header-toggle"><h3>Financial tracker setup</h3><span class="chevron">▾</span></button>
+      <div class="card-body">
+        <div class="field">
+          <label for="setupSavings">Base savings (CLP)</label>
+          <input type="text" inputmode="decimal" autocomplete="off" id="setupSavings">
+        </div>
+        <div class="field">
+          <label for="setupIncome">Monthly stipend (JPY)</label>
+          <input type="text" inputmode="decimal" autocomplete="off" id="setupIncome">
+        </div>
+        <div class="field">
+          <label for="setupExtra">Extra earnings (JPY)</label>
+          <input type="text" inputmode="decimal" autocomplete="off" id="setupExtra">
+        </div>
+        <div class="field">
+          <label for="setupStartMonth">Tracking starts</label>
+          <input type="month" autocomplete="off" id="setupStartMonth">
+          <div class="field-hint">Fixed expenses and the stipend pool only start counting from this month — nothing is deducted before it.</div>
+        </div>
+        <h3 style="margin-top:6px;">Fixed expenses (JPY)</h3>
+        <div id="recurringList"></div>
+        <button type="button" class="btn secondary btn-full" id="addRecurringBtn">+ Add expense</button>
+        <div class="recurring-total">
+          <span>Total per month</span>
+          <span class="amt-wrap">
+            <span class="amt" id="recurringTotal">¥0</span>
+            <span class="amt-clp" id="recurringTotalCLP">CLP 0</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-section="data">
+      <button type="button" class="card-header-toggle"><h3>Data</h3><span class="chevron">▾</span></button>
+      <div class="card-body">
+        <p class="rate-note" style="margin-top:0;">Everything is stored locally in this browser. Export a backup, or import a previously saved file.</p>
+        <div class="settings-actions">
+          <button type="button" class="btn" id="exportBtn">⬇ Export JSON</button>
+          <button type="button" class="btn secondary" id="importBtn">⬆ Import JSON</button>
+          <button type="button" class="btn danger btn-full" id="resetBtn">Reset all data</button>
+          <input type="file" id="importFileInput" accept="application/json">
+        </div>
       </div>
     </div>
   </section>
@@ -973,45 +1003,6 @@
       </div>
     </div>
     <p class="rate-note" id="calcRateNote"></p>
-  </section>
-
-  <!-- TRACKER: FIXED EXPENSES SETUP -->
-  <section class="view" id="view-tracker-setup">
-    <div class="card">
-      <h3>Base savings &amp; income</h3>
-      <div class="field">
-        <label for="setupSavings">Base savings (CLP)</label>
-        <input type="text" inputmode="decimal" autocomplete="off" id="setupSavings">
-      </div>
-      <div class="field">
-        <label for="setupIncome">Monthly stipend (JPY)</label>
-        <input type="text" inputmode="decimal" autocomplete="off" id="setupIncome">
-      </div>
-      <div class="field">
-        <label for="setupExtra">Extra earnings (JPY)</label>
-        <input type="text" inputmode="decimal" autocomplete="off" id="setupExtra">
-      </div>
-      <div class="field" style="margin-bottom:0;">
-        <label for="setupStartMonth">Tracking starts</label>
-        <input type="month" autocomplete="off" id="setupStartMonth">
-        <div class="field-hint">Fixed expenses and the stipend pool only start counting from this month — nothing is deducted before it.</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Fixed expenses (JPY)</h3>
-      <div id="recurringList"></div>
-      <button type="button" class="btn secondary btn-full" id="addRecurringBtn">+ Add expense</button>
-      <div class="recurring-total">
-        <span>Total per month</span>
-        <span class="amt-wrap">
-          <span class="amt" id="recurringTotal">¥0</span>
-          <span class="amt-clp" id="recurringTotalCLP">CLP 0</span>
-        </span>
-      </div>
-    </div>
-
-    <button type="button" class="btn btn-full" id="saveSetupBtn">Save setup</button>
   </section>
 
   <!-- TRACKER: DASHBOARD -->
@@ -1046,14 +1037,12 @@
       </div>
     </div>
 
-    <div class="dash-controls-row">
-      <button type="button" class="month-checkbox" id="scholarshipToggleBtn" aria-pressed="false" title="Stipend received this month">
-        <span class="checkbox-box"></span>
-        <span>Stipend received this month</span>
-      </button>
-      <div id="dashBudgetBanner"></div>
-      <button type="button" class="btn secondary btn-small" data-nav="tracker-setup">Fixed expenses</button>
-    </div>
+    <div id="dashBudgetBanner"></div>
+
+    <button type="button" class="month-checkbox" id="scholarshipToggleBtn" aria-pressed="false" title="Stipend received this month">
+      <span class="checkbox-box"></span>
+      <span>Stipend received this month</span>
+    </button>
 
     <div class="calendar-card">
       <div class="calendar-weekdays">
@@ -1071,37 +1060,6 @@
       <button type="button" id="prevDayBtn">&#8592;</button>
       <div class="month-label" id="dayLabel">—</div>
       <button type="button" id="nextDayBtn">&#8594;</button>
-    </div>
-
-    <div class="card">
-      <h3>Extra income</h3>
-      <div class="expense-scroll" id="incomeItemsScroll">
-        <div id="incomeItemsBody"></div>
-      </div>
-      <button type="button" class="btn secondary btn-full" id="extraIncomeToggleBtn">+ Extra income</button>
-      <div id="extraIncomeForm" style="display:none; margin-top:14px;">
-        <div class="quick-add-row">
-          <div class="field" style="margin:0;">
-            <label for="incomeDesc">Description</label>
-            <input type="text" autocomplete="off" id="incomeDesc" placeholder="e.g. Freelance gig">
-          </div>
-          <div class="field" style="margin:0;">
-            <label for="incomeAmount">Amount (JPY)</label>
-            <input type="text" inputmode="decimal" autocomplete="off" id="incomeAmount" placeholder="0">
-          </div>
-        </div>
-        <div class="field">
-          <label>Add to</label>
-          <div class="segmented" id="incomeTargetSegment">
-            <button type="button" class="seg-btn active" data-target="pool">Stipend pool</button>
-            <button type="button" class="seg-btn" data-target="savings">Savings</button>
-          </div>
-        </div>
-        <div class="modal-actions" style="justify-content:flex-start; margin-top:0;">
-          <button type="button" class="btn" id="incomeAddBtn">Add income</button>
-          <button type="button" class="btn ghost" id="incomeCancelBtn">Cancel</button>
-        </div>
-      </div>
     </div>
 
     <div class="card">
@@ -1130,8 +1088,39 @@
       </div>
     </div>
 
+    <button type="button" class="btn secondary btn-full" id="extraIncomeToggleBtn">+ Extra income</button>
+    <div class="card" id="extraIncomeCard" style="display:none;">
+      <h3>Extra income</h3>
+      <div class="expense-scroll" id="incomeItemsScroll">
+        <div id="incomeItemsBody"></div>
+      </div>
+      <div id="extraIncomeForm" style="margin-top:14px;">
+        <div class="quick-add-row">
+          <div class="field" style="margin:0;">
+            <label for="incomeDesc">Description</label>
+            <input type="text" autocomplete="off" id="incomeDesc" placeholder="e.g. Freelance gig">
+          </div>
+          <div class="field" style="margin:0;">
+            <label for="incomeAmount">Amount (JPY)</label>
+            <input type="text" inputmode="decimal" autocomplete="off" id="incomeAmount" placeholder="0">
+          </div>
+        </div>
+        <div class="field">
+          <label>Add to</label>
+          <div class="segmented" id="incomeTargetSegment">
+            <button type="button" class="seg-btn active" data-target="pool">Stipend pool</button>
+            <button type="button" class="seg-btn" data-target="savings">Savings</button>
+          </div>
+        </div>
+        <div class="modal-actions" style="justify-content:flex-start; margin-top:0;">
+          <button type="button" class="btn" id="incomeAddBtn">Add income</button>
+          <button type="button" class="btn ghost" id="incomeCancelBtn">Cancel</button>
+        </div>
+      </div>
+    </div>
+
     <div class="card">
-      <h3>This day's numbers</h3>
+      <h3>SUMMARY</h3>
       <table class="expense-list">
         <thead>
           <tr><th>Item</th><th style="text-align:right;">Amount</th><th style="text-align:right;">Converted</th></tr>
@@ -1281,7 +1270,9 @@
   var DEFAULT_STATE = {
     settings: {
       exchangeRates: { JPY_CLP: 6, USD_JPY: 150, USD_CLP: 900 },
-      defaultExpenseFund: "stipend"
+      defaultExpenseFund: "stipend",
+      defaultListBudgetJPY: 0,
+      autoStipendDay: null
     },
     financialBase: {
       initialSavingsCLP: 11000000,
@@ -1304,7 +1295,7 @@
       savedLists: [],
       linkedLists: {}
     },
-    ui: { selectedDay: null, calendarMonth: null }
+    ui: { selectedDay: null, calendarMonth: null, collapsedSettings: {} }
   };
 
   var state = null;
@@ -1332,6 +1323,12 @@
     }
     if(parsed.settings && (parsed.settings.defaultExpenseFund === "stipend" || parsed.settings.defaultExpenseFund === "savings")){
       s.settings.defaultExpenseFund = parsed.settings.defaultExpenseFund;
+    }
+    if(parsed.settings && typeof parsed.settings.defaultListBudgetJPY === "number"){
+      s.settings.defaultListBudgetJPY = parsed.settings.defaultListBudgetJPY;
+    }
+    if(parsed.settings && (typeof parsed.settings.autoStipendDay === "number" || parsed.settings.autoStipendDay === null)){
+      s.settings.autoStipendDay = parsed.settings.autoStipendDay;
     }
     if(parsed.financialBase){
       if(typeof parsed.financialBase.initialSavingsCLP === "number") s.financialBase.initialSavingsCLP = parsed.financialBase.initialSavingsCLP;
@@ -1366,6 +1363,9 @@
     if(parsed.ui){
       if(parsed.ui.selectedDay) s.ui.selectedDay = parsed.ui.selectedDay;
       if(parsed.ui.calendarMonth) s.ui.calendarMonth = parsed.ui.calendarMonth;
+      if(parsed.ui.collapsedSettings && typeof parsed.ui.collapsedSettings === "object"){
+        s.ui.collapsedSettings = parsed.ui.collapsedSettings;
+      }
     }
     return s;
   }
@@ -1756,12 +1756,11 @@
     return result;
   }
 
-  // ---------- navigation (with real back-stack) ----------
+  // ---------- navigation (with real back-stack, kept in sync with browser history) ----------
   var VIEW_TITLES = {
     "landing":"Kakeibo",
     "settings":"Global settings",
     "calculator":"Currency exchange",
-    "tracker-setup":"Fixed expenses setup",
     "tracker-dashboard":"Finance tracker",
     "tracker-ledger":"Daily ledger",
     "listcalc":"List calculator"
@@ -1777,7 +1776,6 @@
     document.querySelectorAll(".view").forEach(function(v){ v.classList.remove("active"); });
     var el = document.getElementById("view-"+view);
     if(el) el.classList.add("active");
-    document.getElementById("viewTitle").textContent = VIEW_TITLES[view] || "Kakeibo";
     document.getElementById("backBtn").style.display = (view === "landing") ? "none" : "inline-flex";
     document.getElementById("topbar").classList.toggle("hide-tabs", view === "landing");
     document.querySelectorAll(".nav-links button, .settings-icon-btn").forEach(function(b){
@@ -1790,10 +1788,20 @@
     }
     currentView = view;
 
-    window.location.hash = view;
+    // Keep the browser's own history in sync with our app-level navStack:
+    // a forward navigation pushes a new entry, a "back" navigation (whether
+    // triggered by the in-app back button or the device's hardware back
+    // button) only replaces the current entry so we never grow the stack
+    // going backwards — this is what stops the "back, then snap forward
+    // again" bug on Android.
+    if(isBack){
+      history.replaceState({view:view}, "", "#"+view);
+    } else {
+      history.pushState({view:view}, "", "#"+view);
+    }
+
     if(view === "calculator") renderCalculator();
     if(view === "settings") renderSettings();
-    if(view === "tracker-setup") renderTrackerSetup();
     if(view === "tracker-dashboard") renderDashboard();
     if(view === "listcalc") renderListCalc();
     if(view === "tracker-ledger"){
@@ -1806,15 +1814,64 @@
     var navEl = e.target.closest("[data-nav]");
     if(navEl){ navigate(navEl.getAttribute("data-nav")); }
   });
+
+  // Both the in-app back button and the device's hardware/gesture back
+  // button end up here: the in-app button just asks the browser to go
+  // back, and this single popstate handler is what actually pops the
+  // app's navStack and switches the view — so the two are wired
+  // identically, with one code path deciding what "back" means.
   document.getElementById("backBtn").addEventListener("click", function(){
+    history.back();
+  });
+  window.addEventListener("popstate", function(){
     var prev = navStack.pop();
     if(!prev) prev = "landing";
     navigate(prev, {isBack:true});
   });
 
+  // ---------- global d-pad / keyboard accessibility ----------
+  // Native <button>/<input> elements already respond to Enter/Space. This
+  // handles the div-based interactive elements we've marked role="button"
+  // (mode cards, calendar days, list-linked expense rows) so a phone with a
+  // physical d-pad (directional + center-press = Tab + Enter) can use them.
+  document.addEventListener("keydown", function(e){
+    if(e.key !== "Enter" && e.key !== " " && e.key !== "Spacebar") return;
+    var t = e.target;
+    if(t && t.getAttribute && t.getAttribute("role") === "button"){
+      e.preventDefault();
+      t.click();
+    }
+  });
+
   // ---------- SETTINGS view ----------
   var rateIds = ["rateJpyClp","rateUsdJpy","rateUsdClp"];
   rateIds.forEach(function(id){ attachMoneyFormatting(document.getElementById(id)); });
+
+  // ---- collapsible settings cards ----
+  document.querySelectorAll("#view-settings .card[data-section]").forEach(function(card){
+    var toggleBtn = card.querySelector(".card-header-toggle");
+    var body = card.querySelector(".card-body");
+    if(!toggleBtn || !body) return;
+    toggleBtn.addEventListener("click", function(){
+      var collapsed = body.classList.toggle("collapsed");
+      toggleBtn.classList.toggle("is-collapsed", collapsed);
+      if(!state.ui.collapsedSettings) state.ui.collapsedSettings = {};
+      state.ui.collapsedSettings[card.getAttribute("data-section")] = collapsed;
+      saveState();
+    });
+  });
+
+  function applySettingsCollapsedState(){
+    document.querySelectorAll("#view-settings .card[data-section]").forEach(function(card){
+      var toggleBtn = card.querySelector(".card-header-toggle");
+      var body = card.querySelector(".card-body");
+      if(!toggleBtn || !body) return;
+      var key = card.getAttribute("data-section");
+      var collapsed = !!(state.ui.collapsedSettings && state.ui.collapsedSettings[key]);
+      body.classList.toggle("collapsed", collapsed);
+      toggleBtn.classList.toggle("is-collapsed", collapsed);
+    });
+  }
 
   function renderSettings(){
     setMoneyValue(document.getElementById("rateJpyClp"), state.settings.exchangeRates.JPY_CLP);
@@ -1823,6 +1880,10 @@
     document.querySelectorAll("#defaultFundSegment .seg-btn").forEach(function(b){
       b.classList.toggle("active", b.getAttribute("data-fund") === state.settings.defaultExpenseFund);
     });
+    document.getElementById("defaultListBudget").value = state.settings.defaultListBudgetJPY ? fmtSmart(state.settings.defaultListBudgetJPY) : "";
+    document.getElementById("autoStipendDay").value = state.settings.autoStipendDay || "";
+    renderTrackerSetup();
+    applySettingsCollapsedState();
   }
 
   document.getElementById("defaultFundSegment").addEventListener("click", function(e){
@@ -1831,6 +1892,22 @@
     state.settings.defaultExpenseFund = btn.getAttribute("data-fund");
     this.querySelectorAll(".seg-btn").forEach(function(b){ b.classList.toggle("active", b===btn); });
     saveState();
+  });
+
+  attachMoneyFormatting(document.getElementById("defaultListBudget"));
+  document.getElementById("defaultListBudget").addEventListener("input", function(){
+    var raw = this.value.trim();
+    state.settings.defaultListBudgetJPY = (raw === "" || raw === "-") ? 0 : readNum(this);
+    saveState();
+  });
+
+  document.getElementById("autoStipendDay").addEventListener("input", function(){
+    var raw = this.value.trim();
+    var v = parseInt(raw,10);
+    state.settings.autoStipendDay = (raw !== "" && !isNaN(v) && v >= 1 && v <= 31) ? v : null;
+    saveState();
+    applyAutoStipendReceived();
+    if(currentView === "tracker-dashboard") renderDashboard();
   });
 
   rateIds.forEach(function(id){
@@ -1898,7 +1975,7 @@
   function renderCalculator(){
     var r = state.settings.exchangeRates;
     document.getElementById("calcRateNote").textContent =
-      "Rates in use: 1 JPY = " + fmt(r.JPY_CLP,2) + " CLP · 1 USD = " + fmt(r.USD_JPY,0) + " JPY · 1 USD = " + fmt(r.USD_CLP,0) + " CLP  (edit in Settings)";
+      "1 JPY = " + fmt(r.JPY_CLP,2) + " CLP · 1 USD = " + fmt(r.USD_JPY,0) + " JPY · 1 USD = " + fmt(r.USD_CLP,0) + " CLP";
   }
 
   function calcFromJPY(val){
@@ -1960,7 +2037,7 @@
     calcLock = false;
   });
 
-  // ---------- TRACKER: fixed expenses setup ----------
+  // ---------- TRACKER: financial setup (lives inside Settings, auto-saves) ----------
   ["setupSavings","setupIncome","setupExtra"].forEach(function(id){ attachMoneyFormatting(document.getElementById(id)); });
 
   function renderTrackerSetup(){
@@ -1970,6 +2047,31 @@
     document.getElementById("setupStartMonth").value = state.financialBase.startMonthKey || currentMonthKey();
     renderRecurringList();
   }
+
+  document.getElementById("setupSavings").addEventListener("input", function(){
+    state.financialBase.initialSavingsCLP = readNum(this);
+    saveState();
+  });
+  document.getElementById("setupIncome").addEventListener("input", function(){
+    state.financialBase.monthlyScholarshipJPY = readNum(this);
+    saveState();
+  });
+  document.getElementById("setupExtra").addEventListener("input", function(){
+    state.financialBase.extraEarningsJPY = readNum(this);
+    saveState();
+  });
+  document.getElementById("setupStartMonth").addEventListener("change", function(){
+    var startVal = this.value;
+    if(/^\d{4}-\d{2}$/.test(startVal) && startVal !== state.financialBase.startMonthKey){
+      state.financialBase.startMonthKey = startVal;
+      // the user hasn't explicitly browsed to a specific month yet in this
+      // session — let the dashboard's default re-resolve against the new
+      // start month instead of staying pinned to whatever it resolved to
+      // before the start month was set
+      if(!state.ui.calendarMonth) calendarMonthKey = null;
+      saveState();
+    }
+  });
 
   function renderRecurringList(){
     var container = document.getElementById("recurringList");
@@ -1999,11 +2101,13 @@
     var field = t.getAttribute("data-field");
     if(field === "name"){
       state.financialBase.recurringExpenses[idx].name = t.value;
+      saveState();
     } else if(field === "amountJPY"){
       var formatted = formatNumStr(t.value);
       if(formatted !== t.value) t.value = formatted;
       state.financialBase.recurringExpenses[idx].amountJPY = readNum(t);
       updateRecurringTotal();
+      saveState();
     }
   });
 
@@ -2012,36 +2116,21 @@
     if(!btn) return;
     var idx = parseInt(btn.getAttribute("data-remove-idx"),10);
     state.financialBase.recurringExpenses.splice(idx,1);
+    saveState();
     renderRecurringList();
   });
 
   document.getElementById("addRecurringBtn").addEventListener("click", function(){
     state.financialBase.recurringExpenses.push({ name:"", amountJPY:0 });
-    renderRecurringList();
-  });
-
-  document.getElementById("saveSetupBtn").addEventListener("click", function(){
-    state.financialBase.initialSavingsCLP = readNum(document.getElementById("setupSavings"));
-    state.financialBase.monthlyScholarshipJPY = readNum(document.getElementById("setupIncome"));
-    state.financialBase.extraEarningsJPY = readNum(document.getElementById("setupExtra"));
-    var startVal = document.getElementById("setupStartMonth").value;
-    if(/^\d{4}-\d{2}$/.test(startVal) && startVal !== state.financialBase.startMonthKey){
-      state.financialBase.startMonthKey = startVal;
-      // the user hasn't explicitly browsed to a specific month yet in this
-      // session — let the dashboard's default re-resolve against the new
-      // start month instead of staying pinned to whatever it resolved to
-      // before the start month was set
-      if(!state.ui.calendarMonth) calendarMonthKey = null;
-    }
     saveState();
-    showToast("Fixed expenses setup saved.");
-    navigate("tracker-dashboard");
+    renderRecurringList();
   });
 
   // ---------- TRACKER: dashboard (shows whichever month is browsed via the month selector) ----------
   function renderDashboard(){
     var key = currentCalendarMonthKey();
     ensureMonthsUpTo(key);
+    applyAutoStipendReceived();
     var res = computeChain(key);
     var r = state.settings.exchangeRates;
     var entry = state.months[key] || defaultMonthEntry();
@@ -2065,7 +2154,6 @@
 
     var incomeCard = document.getElementById("cardExtraIncome");
     var hasExtraIncome = res.extraIncomeTotal > 0;
-    document.querySelector(".summary-grid").classList.toggle("cols-4", hasExtraIncome);
     if(hasExtraIncome){
       incomeCard.style.display = "";
       document.getElementById("sumExtraIncomeJPY").textContent = "¥" + fmt(res.extraIncomeTotal);
@@ -2081,7 +2169,7 @@
       banner.innerHTML = '<div class="deficit-banner">Over budget by ¥'+fmt(res.deficitJPY)+
         ' (CLP '+fmt(res.deficitJPY*r.JPY_CLP)+')</div>';
     } else {
-      banner.innerHTML = '<div class="ok-banner">Within budget. Savings untouched this month.</div>';
+      banner.innerHTML = "";
     }
 
     renderCalendar();
@@ -2107,6 +2195,29 @@
       }
     }
     return calendarMonthKey;
+  }
+
+  // Monotonic auto-check-in: once the configured day of the month has
+  // passed, mark the stipend as received for the relevant months — but
+  // never un-check a month, and never touch one that's already true
+  // (including one the user already checked manually before that day).
+  function applyAutoStipendReceived(){
+    var day = state.settings.autoStipendDay;
+    if(!day) return;
+    var today = new Date();
+    if(today.getDate() < day) return;
+    var keys = [currentMonthKey()];
+    var calKey = currentCalendarMonthKey();
+    if(keys.indexOf(calKey) === -1) keys.push(calKey);
+    var changed = false;
+    keys.forEach(function(key){
+      if(!state.months[key]) state.months[key] = defaultMonthEntry();
+      if(!state.months[key].scholarshipReceived){
+        state.months[key].scholarshipReceived = true;
+        changed = true;
+      }
+    });
+    if(changed) saveState();
   }
 
   function renderCalendar(){
@@ -2143,6 +2254,8 @@
       var cell = document.createElement("div");
       cell.className = "calendar-day" + (dateKey===today ? " is-today":"") + (expAmt>0 ? " has-spend":"");
       cell.setAttribute("data-day", dateKey);
+      cell.setAttribute("tabindex", "0");
+      cell.setAttribute("role", "button");
       var html = '<div class="day-num">'+day+'</div>';
       if(incAmt>0) html += '<div class="day-income">+¥'+fmtCompact(incAmt)+'</div>';
       if(expAmt>0) html += '<div class="day-amt">¥'+fmtCompact(expAmt)+'</div>';
@@ -2233,9 +2346,9 @@
     renderIncomeItems(key);
     renderLedgerMath(key);
 
-    // collapse the extra-income form and reset the fund selector back to the default on (re)entry
-    document.getElementById("extraIncomeForm").style.display = "none";
-    document.getElementById("extraIncomeToggleBtn").style.display = "";
+    // collapse the whole extra-income card and reset the fund selector back to the default on (re)entry
+    document.getElementById("extraIncomeCard").style.display = "none";
+    document.getElementById("extraIncomeToggleBtn").textContent = "+ Extra income";
     document.getElementById("incomeDesc").value = "";
     document.getElementById("incomeAmount").value = "";
     incomeTarget = "pool";
@@ -2266,7 +2379,11 @@
       var editing = editingExpenseId === exp.id;
       var isListRef = !!exp.isListRef;
       row.className = "expense-row" + (editing ? " is-editing" : "") + (isListRef ? " is-list-ref" : "");
-      if(isListRef) row.setAttribute("data-list-id", exp.listId);
+      if(isListRef){
+        row.setAttribute("data-list-id", exp.listId);
+        row.setAttribute("tabindex", "0");
+        row.setAttribute("role", "button");
+      }
       if(editing){
         var editFund = exp.fund === "savings" ? "savings" : "stipend";
         row.innerHTML =
@@ -2322,13 +2439,19 @@
       if(e.day !== dayKey) return sum;
       return sum + (Number(e.amountJPY)||0) * (Number(e.multiplier)||1);
     }, 0);
+    var dayIncomeTotal = (entry.extraIncomes||[]).reduce(function(sum,inc){
+      if(inc.day !== dayKey) return sum;
+      return sum + (Number(inc.amountJPY)||0);
+    }, 0);
 
-    var body = document.getElementById("ledgerMathBody");
-    body.innerHTML =
-      moneyRow("Total spent this month", res.totalExpenses) +
-      moneyRow("Logged this day", dayTotal) +
-      moneyRow("Remaining stipend", res.remainingPool) +
-      savingsRow("Remaining savings", res.savingsAfterCLP);
+    var html = moneyRow("Logged today", dayTotal);
+    if(dayIncomeTotal > 0){
+      html += moneyRow("Today's income", dayIncomeTotal);
+    }
+    html += moneyRow("Remaining stipend", res.remainingPool);
+    html += savingsRow("Remaining savings", res.savingsAfterCLP);
+
+    document.getElementById("ledgerMathBody").innerHTML = html;
   }
 
   // ---------- TRACKER: extra income (on the daily ledger page) ----------
@@ -2361,12 +2484,19 @@
   }
 
   document.getElementById("extraIncomeToggleBtn").addEventListener("click", function(){
-    document.getElementById("extraIncomeForm").style.display = "block";
-    this.style.display = "none";
+    var card = document.getElementById("extraIncomeCard");
+    var isOpen = card.style.display !== "none";
+    if(isOpen){
+      card.style.display = "none";
+      this.textContent = "+ Extra income";
+    } else {
+      card.style.display = "";
+      this.textContent = "− Hide extra income";
+    }
   });
   document.getElementById("incomeCancelBtn").addEventListener("click", function(){
-    document.getElementById("extraIncomeForm").style.display = "none";
-    document.getElementById("extraIncomeToggleBtn").style.display = "";
+    document.getElementById("extraIncomeCard").style.display = "none";
+    document.getElementById("extraIncomeToggleBtn").textContent = "+ Extra income";
     document.getElementById("incomeDesc").value = "";
     document.getElementById("incomeAmount").value = "";
   });
@@ -2589,10 +2719,21 @@
   attachMoneyFormatting(document.getElementById("multiplyInput"));
   var editingListItemId = null;
 
-  function renderListCalc(){
+  // The list budget field shows the list's own explicit budget when set;
+  // otherwise, if a default list budget has been configured in Settings,
+  // it's shown pre-filled (but not written into the list's own state)
+  // until the user actually edits it.
+  function effectiveListBudget(){
     var lc = state.listCalc.current;
+    if(lc.budgetJPY !== null && lc.budgetJPY !== undefined) return lc.budgetJPY;
+    var d = Number(state.settings.defaultListBudgetJPY) || 0;
+    return d > 0 ? d : null;
+  }
+
+  function renderListCalc(){
     var budgetEl = document.getElementById("listBudget");
-    budgetEl.value = (lc.budgetJPY === null || lc.budgetJPY === undefined) ? "" : fmtSmart(lc.budgetJPY);
+    var eff = effectiveListBudget();
+    budgetEl.value = (eff === null) ? "" : fmtSmart(eff);
     renderListItems();
     updateListTotals();
     updateBrowseButtonVisibility();
@@ -2652,8 +2793,9 @@
     document.getElementById("listTotalCLP").textContent = "CLP " + fmt(total*rate);
 
     var remainingRow = document.getElementById("listRemainingRow");
-    if(lc.budgetJPY !== null && lc.budgetJPY !== undefined){
-      var remaining = lc.budgetJPY - total;
+    var budget = effectiveListBudget();
+    if(budget !== null){
+      var remaining = budget - total;
       remainingRow.style.display = "flex";
       document.getElementById("listRemaining").textContent = "¥" + fmt(remaining);
       document.getElementById("listRemainingCLP").textContent = "CLP " + fmt(remaining*rate);
@@ -2997,15 +3139,26 @@
     if(!state.ui.selectedDay){
       state.ui.selectedDay = todayDateKey();
     }
+    if(!state.ui.collapsedSettings) state.ui.collapsedSettings = {};
     ensureMonthsUpTo(dateKeyToMonthKey(state.ui.selectedDay));
     ensureMonthsUpTo(currentMonthKey());
+    applyAutoStipendReceived();
     saveState();
 
     var startView = "landing";
     var hash = window.location.hash.replace("#","");
     if(hash && document.getElementById("view-"+hash)) startView = hash;
-    if(startView !== "landing"){ navStack = ["landing"]; }
-    navigate(startView);
+
+    // Establish a sane base history entry for "landing" first (so the
+    // very first hardware-back press has somewhere real to land, instead
+    // of leaving the PWA), then — for a deep-linked start view — push a
+    // second entry on top of it.
+    navStack = [];
+    currentView = null;
+    navigate("landing", {isBack:true});
+    if(startView !== "landing"){
+      navigate(startView);
+    }
   }
 
   init();
