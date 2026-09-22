@@ -66,7 +66,7 @@
     padding:10px 12px;
     border-radius:8px;
     flex-shrink:0;
-    -webkit-text-stroke:0.5px var(--accent-2);
+    -webkit-text-stroke:0.7px var(--accent-2);
   }
   header.topbar .back-btn:hover{ background:var(--accent-soft); }
   header.topbar .nav-links{
@@ -347,6 +347,19 @@
   .summary-card.warn .value{ color:var(--red); }
   .summary-card.ok .value{ color:var(--green); }
   .summary-card.span-full{ grid-column:1 / -1; }
+  .summary-card.span-full .value-row{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .summary-card.span-full .value{
+    font-size:clamp(1.3rem, 7vw, 2.1rem);
+  }
+  .summary-card.span-full .sub{
+    margin-top:0;
+    flex-shrink:0;
+  }
 
   .tracker-nav{
     display:flex;
@@ -866,7 +879,7 @@
 <body>
 
 <header class="topbar" id="topbar">
-  <button type="button" class="back-btn" id="backBtn">&#8592;</button>
+  <button type="button" class="back-btn" id="backBtn">&#9664;</button>
   <div class="nav-links">
     <button type="button" data-nav="landing">Home</button>
     <button type="button" data-nav="calculator">Exchange</button>
@@ -901,47 +914,6 @@
 
   <!-- SETTINGS -->
   <section class="view" id="view-settings">
-    <div class="card" data-section="rates">
-      <button type="button" class="card-header-toggle"><h3>Exchange rates</h3><span class="chevron">▾</span></button>
-      <div class="card-body">
-        <div class="field">
-          <label for="rateJpyClp">1 JPY = ? CLP</label>
-          <input type="text" inputmode="decimal" autocomplete="off" id="rateJpyClp">
-        </div>
-        <div class="field">
-          <label for="rateUsdJpy">1 USD = ? JPY</label>
-          <input type="text" inputmode="decimal" autocomplete="off" id="rateUsdJpy">
-        </div>
-        <div class="field">
-          <label for="rateUsdClp">1 USD = ? CLP</label>
-          <input type="text" inputmode="decimal" autocomplete="off" id="rateUsdClp">
-        </div>
-        <p class="rate-note">These rates drive the currency exchange page and every JPY⇄CLP conversion in the tracker (deficit drawdowns, savings totals, etc). Edit anytime — changes apply immediately.</p>
-      </div>
-    </div>
-
-    <div class="card" data-section="defaults">
-      <button type="button" class="card-header-toggle"><h3>Defaults</h3><span class="chevron">▾</span></button>
-      <div class="card-body">
-        <div class="field">
-          <label>Default fund for logged expenses</label>
-          <div class="segmented" id="defaultFundSegment">
-            <button type="button" class="seg-btn" data-fund="stipend">Stipend</button>
-            <button type="button" class="seg-btn" data-fund="savings">Savings</button>
-          </div>
-        </div>
-        <div class="field">
-          <label for="defaultListBudget">Default list budget (JPY)</label>
-          <input type="text" inputmode="decimal" autocomplete="off" id="defaultListBudget" placeholder="0">
-        </div>
-        <div class="field" style="margin-bottom:0;">
-          <label for="autoStipendDay">Stipend auto-received day</label>
-          <input type="number" inputmode="numeric" autocomplete="off" id="autoStipendDay" min="1" max="31" placeholder="None">
-          <div class="field-hint">On or after this day of the month, "stipend received" is checked automatically. Leave blank to disable.</div>
-        </div>
-      </div>
-    </div>
-
     <div class="card" data-section="financial">
       <button type="button" class="card-header-toggle"><h3>Financial tracker setup</h3><span class="chevron">▾</span></button>
       <div class="card-body">
@@ -974,6 +946,52 @@
         </div>
       </div>
     </div>
+
+    <div class="card" data-section="defaults">
+      <button type="button" class="card-header-toggle"><h3>Defaults</h3><span class="chevron">▾</span></button>
+      <div class="card-body">
+        <div class="field">
+          <label>Default fund for logged expenses</label>
+          <div class="segmented" id="defaultFundSegment">
+            <button type="button" class="seg-btn" data-fund="stipend" tabindex="0">Stipend</button>
+            <button type="button" class="seg-btn" data-fund="savings" tabindex="0">Savings</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="defaultListBudget">Default list budget (JPY)</label>
+          <input type="text" inputmode="decimal" autocomplete="off" id="defaultListBudget" placeholder="0">
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label for="autoStipendDay">Stipend auto-received day</label>
+          <input type="number" inputmode="numeric" autocomplete="off" id="autoStipendDay" min="1" max="31" placeholder="None">
+          <div class="field-hint">On or after this day of the month, "stipend received" is checked automatically. Leave blank to disable.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-section="rates">
+      <button type="button" class="card-header-toggle"><h3>Exchange rates</h3><span class="chevron">▾</span></button>
+      <div class="card-body">
+        <div class="field">
+          <label for="rateJpyClp">1 JPY = ? CLP</label>
+          <input type="text" inputmode="decimal" autocomplete="off" id="rateJpyClp">
+        </div>
+        <div class="field">
+          <label for="rateUsdJpy">1 USD = ? JPY</label>
+          <input type="text" inputmode="decimal" autocomplete="off" id="rateUsdJpy">
+        </div>
+        <div class="field">
+          <label for="rateUsdClp">1 USD = ? CLP</label>
+          <input type="text" inputmode="decimal" autocomplete="off" id="rateUsdClp">
+        </div>
+        <p class="rate-note">These rates drive the currency exchange page and every JPY⇄CLP conversion in the tracker (deficit drawdowns, savings totals, etc). Edit anytime — changes apply immediately.</p>
+      </div>
+    </div>
+
+    <button type="button" class="month-checkbox" id="keypadUserToggleBtn" aria-pressed="true" title="Enable keypad/d-pad navigation shortcuts">
+      <span class="checkbox-box"></span>
+      <span>Keypad user</span>
+    </button>
 
     <div class="card" data-section="data">
       <button type="button" class="card-header-toggle"><h3>Data</h3><span class="chevron">▾</span></button>
@@ -1030,8 +1048,10 @@
       </div>
       <div class="summary-card" id="cardSpent">
         <div class="label">Total spent this month</div>
-        <div class="value" id="sumSpentJPY">¥0</div>
-        <div class="sub" id="sumSpentCLP">CLP 0</div>
+        <div class="value-row">
+          <div class="value" id="sumSpentJPY">¥0</div>
+          <div class="sub" id="sumSpentCLP">CLP 0</div>
+        </div>
       </div>
       <div class="summary-card" id="cardExtraIncome" style="display:none;">
         <div class="label">Extra income this month</div>
@@ -1081,8 +1101,8 @@
       <div class="field" id="expenseFundWrap" style="display:none;">
         <label>Pay from</label>
         <div class="segmented" id="expenseFundSegment">
-          <button type="button" class="seg-btn active" data-fund="stipend">Stipend</button>
-          <button type="button" class="seg-btn" data-fund="savings">Savings</button>
+          <button type="button" class="seg-btn active" data-fund="stipend" tabindex="0">Stipend</button>
+          <button type="button" class="seg-btn" data-fund="savings" tabindex="0">Savings</button>
         </div>
       </div>
 
@@ -1111,8 +1131,8 @@
         <div class="field">
           <label>Add to</label>
           <div class="segmented" id="incomeTargetSegment">
-            <button type="button" class="seg-btn active" data-target="pool">Stipend pool</button>
-            <button type="button" class="seg-btn" data-target="savings">Savings</button>
+            <button type="button" class="seg-btn active" data-target="pool" tabindex="0">Stipend pool</button>
+            <button type="button" class="seg-btn" data-target="savings" tabindex="0">Savings</button>
           </div>
         </div>
         <div class="modal-actions" style="justify-content:flex-start; margin-top:0;">
@@ -1122,7 +1142,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" tabindex="0">
       <h3>SUMMARY</h3>
       <table class="expense-list">
         <thead>
@@ -1252,8 +1272,8 @@
     <div class="field" style="margin-bottom:0;">
       <label>Pay from</label>
       <div class="segmented" id="addToLedgerFundSegment">
-        <button type="button" class="seg-btn active" data-fund="stipend">Stipend</button>
-        <button type="button" class="seg-btn" data-fund="savings">Savings</button>
+        <button type="button" class="seg-btn active" data-fund="stipend" tabindex="0">Stipend</button>
+        <button type="button" class="seg-btn" data-fund="savings" tabindex="0">Savings</button>
       </div>
     </div>
     <div class="modal-actions">
@@ -1275,7 +1295,8 @@
       exchangeRates: { JPY_CLP: 6, USD_JPY: 150, USD_CLP: 900 },
       defaultExpenseFund: "stipend",
       defaultListBudgetJPY: 0,
-      autoStipendDay: null
+      autoStipendDay: null,
+      keypadUser: true
     },
     financialBase: {
       initialSavingsCLP: 11000000,
@@ -1332,6 +1353,9 @@
     }
     if(parsed.settings && (typeof parsed.settings.autoStipendDay === "number" || parsed.settings.autoStipendDay === null)){
       s.settings.autoStipendDay = parsed.settings.autoStipendDay;
+    }
+    if(parsed.settings && typeof parsed.settings.keypadUser === "boolean"){
+      s.settings.keypadUser = parsed.settings.keypadUser;
     }
     if(parsed.financialBase){
       if(typeof parsed.financialBase.initialSavingsCLP === "number") s.financialBase.initialSavingsCLP = parsed.financialBase.initialSavingsCLP;
@@ -1536,8 +1560,47 @@
     return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
   }
 
-  function openModal(id){ document.getElementById(id).classList.add("show"); }
+  function openModal(id){
+    var modal = document.getElementById(id);
+    modal.classList.add("show");
+    // Auto-focus the modal's first text input (and select any existing value)
+    // so the user can start typing immediately without tapping in first; if
+    // there's no input, focus the first focusable element instead so a
+    // keypad user always has somewhere to land. This is plain good UX and
+    // isn't gated behind the "Keypad user" setting.
+    var firstInput = modal.querySelector('input[type="text"]:not([disabled])');
+    if(firstInput){
+      firstInput.focus();
+      if(firstInput.select) firstInput.select();
+    } else {
+      var firstFocusable = modal.querySelector(FOCUSABLE_SELECTOR);
+      if(firstFocusable) firstFocusable.focus();
+    }
+  }
   function closeModal(id){ document.getElementById(id).classList.remove("show"); }
+
+  // Which open modal is currently visible, if any — used by the global
+  // back-button handler (a modal open takes priority: back closes it via its
+  // Cancel/Close button instead of navigating the underlying page away) and
+  // by getFocusableInView, which scans inside the open modal instead of the
+  // underlying view while one is showing.
+  function getOpenModalId(){
+    var m = document.querySelector(".modal-overlay.show");
+    return m ? m.id : null;
+  }
+  var MODAL_CANCEL_BTN_ID = {
+    saveListModal: "saveListCancelBtn",
+    browseListsModal: "browseListsCloseBtn",
+    confirmModal: "confirmModalCancelBtn",
+    multiplyModal: "multiplyCancelBtn",
+    addToLedgerModal: "addToLedgerCancelBtn"
+  };
+  function triggerModalCancel(modalId){
+    var btnId = MODAL_CANCEL_BTN_ID[modalId];
+    var btn = btnId && document.getElementById(btnId);
+    if(btn) btn.click();
+    else closeModal(modalId);
+  }
 
   // ---------- generic in-app confirm modal (replaces native confirm()/alert()) ----------
   var confirmModalCallback = null;
@@ -1835,43 +1898,96 @@
   // app's navStack and switches the view — so the two are wired
   // identically, with one code path deciding what "back" means.
   // A mouse/touch tap on this button moves focus to it on mousedown,
-  // before the "click" event even fires — so the calendar-nav-mode check
-  // has to happen on mousedown (while focus is still on the day cell) and
-  // suppress the default focus shift, otherwise by the time "click" runs
-  // it's too late to tell we were ever in nav mode. The hardware/gesture
-  // back press instead goes straight to the popstate handler below, which
-  // isn't affected by this since no on-screen button is involved there.
-  var backBtnExitedCalendarNav = false;
+  // before the "click" event even fires — so any check that depends on
+  // *what currently has focus* (calendar-nav-mode, a focused text field)
+  // has to happen on mousedown, while that focus is still in place, and
+  // suppress the default focus shift — otherwise by the time "click" runs
+  // it's too late to tell. The hardware/gesture back press instead goes
+  // straight to the popstate handler below, which isn't affected by this
+  // since no on-screen button (and thus no mousedown) is involved there.
+  //
+  // Precedence, checked in this order, every place "back" is handled
+  // (mousedown/click here, and popstate below) — all gated behind the
+  // "Keypad user" setting except the final fallback, which always runs:
+  //   1. an open modal — back closes it via its Cancel/Close button
+  //      (doesn't depend on focus, so it's safe to resolve in "click"/
+  //      popstate directly; a focused field *inside* the modal is moot,
+  //      since the whole modal is about to go away anyway)
+  //   2. calendar-navigation mode — back steps out to the calendar card
+  //   3. a focused text field — back just blurs it (deselects it) so
+  //      keypad focus returns to the page, without navigating away
+  //   4. otherwise — normal back navigation (always runs, keypad or not;
+  //      this is the core Android hardware-back-button fix from v10)
+  // Only counts as "a text field the user is in" if it actually has some
+  // content — an empty field is almost always just wherever navigate()'s
+  // auto-focus-first-element landed (e.g. the calculator's JPY box right
+  // after opening that view), not somewhere the user deliberately typed
+  // into, so back should navigate normally from there rather than needing
+  // an extra press to "deselect" a field nothing was ever entered into.
+  function isTextFieldFocused(){
+    var ae = document.activeElement;
+    if(!ae || (ae.tagName !== "INPUT" && ae.tagName !== "TEXTAREA")) return false;
+    return ae.value !== "";
+  }
+  var backBtnAbsorbed = false;
   document.getElementById("backBtn").addEventListener("mousedown", function(e){
+    if(!state.settings.keypadUser) return;
+    if(getOpenModalId()) return; // handled in the click handler below
     if(isInCalendarNavMode()){
       e.preventDefault();
       focusCalendarCard();
-      backBtnExitedCalendarNav = true;
+      backBtnAbsorbed = true;
+      return;
+    }
+    if(isTextFieldFocused()){
+      e.preventDefault();
+      document.activeElement.blur();
+      backBtnAbsorbed = true;
     }
   });
   document.getElementById("backBtn").addEventListener("click", function(){
-    if(backBtnExitedCalendarNav){
-      backBtnExitedCalendarNav = false;
+    if(backBtnAbsorbed){
+      backBtnAbsorbed = false;
       return;
     }
-    if(isInCalendarNavMode()){
-      focusCalendarCard();
-      return;
+    if(state.settings.keypadUser){
+      var modalId = getOpenModalId();
+      if(modalId){
+        triggerModalCancel(modalId);
+        return;
+      }
+      if(isInCalendarNavMode()){
+        focusCalendarCard();
+        return;
+      }
     }
     history.back();
   });
   window.addEventListener("popstate", function(){
-    // If the user is inside calendar-navigation mode (focus on a day
-    // cell), the back button steps back out to the calendar card instead
-    // of leaving the current page. We push the current view's state right
-    // back so the browser's history is left where it was — this "absorbs"
-    // one back-press. A second back-press then finds focus already back
-    // on the calendar card (outside any .calendar-day), so it falls
-    // through to the normal navigate-back logic below.
-    if(isInCalendarNavMode()){
-      focusCalendarCard();
-      history.pushState({view:currentView}, "", "#"+currentView);
-      return;
+    if(state.settings.keypadUser){
+      var modalId = getOpenModalId();
+      if(modalId){
+        triggerModalCancel(modalId);
+        history.pushState({view:currentView}, "", "#"+currentView); // absorb this back-press
+        return;
+      }
+      // If the user is inside calendar-navigation mode (focus on a day
+      // cell), the back button steps back out to the calendar card instead
+      // of leaving the current page. We push the current view's state right
+      // back so the browser's history is left where it was — this "absorbs"
+      // one back-press. A second back-press then finds focus already back
+      // on the calendar card (outside any .calendar-day), so it falls
+      // through to the normal navigate-back logic below.
+      if(isInCalendarNavMode()){
+        focusCalendarCard();
+        history.pushState({view:currentView}, "", "#"+currentView);
+        return;
+      }
+      if(isTextFieldFocused()){
+        document.activeElement.blur();
+        history.pushState({view:currentView}, "", "#"+currentView);
+        return;
+      }
     }
     var prev = navStack.pop();
     if(!prev) prev = "landing";
@@ -1888,9 +2004,14 @@
 
   // All focusable elements inside the currently-visible view, in DOM
   // (i.e. visual) order, skipping anything hidden (display:none ancestor,
-  // a collapsed settings section, etc).
+  // a collapsed settings section, etc). When a modal is open, this scans
+  // *inside that modal* instead of the underlying view — modals (Save
+  // list, Browse lists, Confirm, Multiply, Add to ledger) live outside any
+  // "view-*" container, so without this they and their buttons would be
+  // completely unreachable by roving focus / ArrowLeft-Right / Enter.
   function getFocusableInView(view){
-    var container = document.getElementById("view-" + view);
+    var modal = document.getElementById(getOpenModalId());
+    var container = modal || document.getElementById("view-" + view);
     if(!container) return [];
     var all = container.querySelectorAll(FOCUSABLE_SELECTOR);
     // tabindex="-1" elements (month/day nav arrow buttons, individual
@@ -1975,6 +2096,13 @@
   }
 
   document.addEventListener("keydown", function(e){
+    // Everything below is the custom d-pad/keypad navigation system
+    // (roving focus, calendar-grid nav mode, horizontal ArrowLeft/Right,
+    // Enter-activates-role-button) — gated behind the "Keypad user" setting
+    // (Settings). With it off, the app behaves like a normal touch-first
+    // app: native click/tap keeps working, but no arrow/Enter handling.
+    if(!state.settings.keypadUser) return;
+
     // Native <button>/<input> elements already respond to Enter/Space. This
     // handles the div-based interactive elements we've marked role="button"
     // (mode cards, calendar days, list-linked expense rows) plus entering
@@ -2062,6 +2190,7 @@
   // through with arrows.
   var LANDING_KEY_NAV = {"1": "calculator", "2": "tracker-dashboard", "3": "listcalc"};
   document.addEventListener("keydown", function(e){
+    if(!state.settings.keypadUser) return;
     if(currentView !== "landing") return;
     var dest = LANDING_KEY_NAV[e.key];
     if(!dest) return;
@@ -2069,10 +2198,27 @@
     navigate(dest);
   });
 
+  // ---------- digit 5/8: slow scroll when no text field is focused ----------
+  // Physical-keypad convenience: with nothing focused, "5"/"8" scroll the
+  // page up/down a little at a time (holding the key naturally repeat-fires
+  // keydown for a continuous slow scroll). It steps aside on the calculator
+  // view, where 5/8 are legitimate currency digits about to be routed into
+  // an amount field by the handler below.
+  document.addEventListener("keydown", function(e){
+    if(!state.settings.keypadUser) return;
+    if(e.key !== "5" && e.key !== "8") return;
+    if(currentView === "calculator") return;
+    var ae = document.activeElement;
+    if(ae && (ae.tagName === "INPUT" || ae.tagName === "TEXTAREA")) return;
+    e.preventDefault();
+    window.scrollBy({top: e.key === "5" ? -40 : 40, behavior: "smooth"});
+  });
+
   // ---------- CALCULATOR view: typing with nothing focused lands in JPY ----------
   // Mirrors feature-phone UX: there's no way to "click into" a field first,
   // so the first keystroke should just land somewhere useful.
   document.addEventListener("keydown", function(e){
+    if(!state.settings.keypadUser) return;
     if(currentView !== "calculator") return;
     if(e.ctrlKey || e.metaKey || e.altKey) return;
     if(e.key.length !== 1 || !/[0-9.,-]/.test(e.key)) return;
@@ -2121,9 +2267,25 @@
     });
     document.getElementById("defaultListBudget").value = state.settings.defaultListBudgetJPY ? fmtSmart(state.settings.defaultListBudgetJPY) : "";
     document.getElementById("autoStipendDay").value = state.settings.autoStipendDay || "";
+    setKeypadUserToggleUI(state.settings.keypadUser);
     renderTrackerSetup();
     applySettingsCollapsedState();
   }
+
+  // Gates the whole custom keyboard/d-pad navigation system (roving focus,
+  // calendar/row nav modes, digit shortcuts, back-button context-awareness)
+  // — see the keypadUser checks in the global keydown/back-button handlers.
+  // Default on, since this app was built for a physical-keypad phone.
+  var keypadUserToggleBtn = document.getElementById("keypadUserToggleBtn");
+  function setKeypadUserToggleUI(val){
+    keypadUserToggleBtn.classList.toggle("is-on", !!val);
+    keypadUserToggleBtn.setAttribute("aria-pressed", val ? "true" : "false");
+  }
+  keypadUserToggleBtn.addEventListener("click", function(){
+    state.settings.keypadUser = !state.settings.keypadUser;
+    setKeypadUserToggleUI(state.settings.keypadUser);
+    saveState();
+  });
 
   document.getElementById("defaultFundSegment").addEventListener("click", function(e){
     var btn = e.target.closest(".seg-btn");
@@ -2637,8 +2799,8 @@
           '<div class="field" style="margin:8px 0;">' +
             '<label>Pay from</label>' +
             '<div class="segmented edit-fund-segment">' +
-              '<button type="button" class="seg-btn'+(editFund==="stipend"?" active":"")+'" data-fund="stipend">Stipend</button>' +
-              '<button type="button" class="seg-btn'+(editFund==="savings"?" active":"")+'" data-fund="savings">Savings</button>' +
+              '<button type="button" class="seg-btn'+(editFund==="stipend"?" active":"")+'" data-fund="stipend" tabindex="0">Stipend</button>' +
+              '<button type="button" class="seg-btn'+(editFund==="savings"?" active":"")+'" data-fund="savings" tabindex="0">Savings</button>' +
             '</div>' +
           '</div>' +
           '<div class="row-actions">' +
@@ -2652,10 +2814,10 @@
         var marker = isListRef ? '<span class="list-ref-marker">🧾</span>' : '';
         var fundTag = (exp.fund === "savings") ? ' <span class="expense-fund-tag">→ Savings</span>' : '';
         var actions = isListRef
-          ? '<button type="button" class="btn danger" data-del-exp="'+exp.id+'">Delete</button>'
-          : '<button type="button" class="btn ghost" data-mult-exp="'+exp.id+'" title="Multiply">×</button>' +
-            '<button type="button" class="btn ghost" data-edit-exp="'+exp.id+'">Edit</button>' +
-            '<button type="button" class="btn danger" data-del-exp="'+exp.id+'">Delete</button>';
+          ? '<button type="button" class="btn danger" data-del-exp="'+exp.id+'" tabindex="0" aria-label="Delete" title="Delete">🗑️</button>'
+          : '<button type="button" class="btn ghost" data-mult-exp="'+exp.id+'" tabindex="0" title="Multiply">×</button>' +
+            '<button type="button" class="btn ghost" data-edit-exp="'+exp.id+'" tabindex="0" aria-label="Edit" title="Edit">✏️</button>' +
+            '<button type="button" class="btn danger" data-del-exp="'+exp.id+'" tabindex="0" aria-label="Delete" title="Delete">🗑️</button>';
         row.innerHTML =
           '<div class="desc">'+marker+escapeAttr(displayName)+fundTag+'</div>' +
           '<div class="amt-block"><div class="jpy">¥'+fmt(effectiveAmt)+'</div><div class="clp-line">CLP '+fmt(effectiveAmt*rate)+'</div></div>' +
@@ -2722,7 +2884,7 @@
         '<div class="desc">'+escapeAttr(inc.description)+targetTag+'</div>' +
         '<div class="amt-block"><div class="jpy income-amt">+¥'+fmt(inc.amountJPY)+'</div><div class="clp-line">CLP '+fmt(inc.amountJPY*rate)+'</div></div>' +
         '<div class="row-actions">' +
-          '<button type="button" class="btn danger" data-del-income="'+inc.id+'">Delete</button>' +
+          '<button type="button" class="btn danger" data-del-income="'+inc.id+'" tabindex="0" aria-label="Delete" title="Delete">🗑️</button>' +
         '</div>';
       container.appendChild(row);
     });
@@ -3021,9 +3183,9 @@
           '<div class="desc">'+escapeAttr(displayName)+'</div>' +
           '<div class="amt-block"><div class="jpy">¥'+fmt(effectivePrice)+'</div><div class="clp-line">CLP '+fmt(effectivePrice*rate)+'</div></div>' +
           '<div class="row-actions">' +
-            '<button type="button" class="btn ghost" data-mult-item="'+it.id+'" title="Multiply">×</button>' +
-            '<button type="button" class="btn ghost" data-edit-item="'+it.id+'">Edit</button>' +
-            '<button type="button" class="btn danger" data-del-item="'+it.id+'">Delete</button>' +
+            '<button type="button" class="btn ghost" data-mult-item="'+it.id+'" tabindex="0" title="Multiply">×</button>' +
+            '<button type="button" class="btn ghost" data-edit-item="'+it.id+'" tabindex="0" aria-label="Edit" title="Edit">✏️</button>' +
+            '<button type="button" class="btn danger" data-del-item="'+it.id+'" tabindex="0" aria-label="Delete" title="Delete">🗑️</button>' +
           '</div>';
       }
       container.appendChild(row);
@@ -3337,8 +3499,8 @@
         '<div class="info"><div class="name">'+escapeAttr(list.name)+'</div>' +
         '<div class="meta">'+list.items.length+' item'+(list.items.length===1?'':'s')+' · ¥'+fmt(total)+'</div></div>' +
         '<div class="row-actions">' +
-          '<button type="button" class="btn secondary" data-open-list="'+list.id+'">Open</button>' +
-          '<button type="button" class="btn danger" data-delete-list="'+list.id+'">Delete</button>' +
+          '<button type="button" class="btn secondary" data-open-list="'+list.id+'" tabindex="0">Open</button>' +
+          '<button type="button" class="btn danger" data-delete-list="'+list.id+'" tabindex="0" aria-label="Delete" title="Delete">🗑️</button>' +
         '</div>';
       container.appendChild(row);
     });
