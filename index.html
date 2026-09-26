@@ -865,6 +865,75 @@
     font-size:13.5px;
   }
 
+  /* Analysis */
+  .calendar-card h3{
+    margin:0 0 12px;
+    font-size:13.5px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    color:var(--accent-2);
+  }
+  .analysis-chart-scroll{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .analysis-chart-scroll::-webkit-scrollbar{ display:none; }
+  .analysis-chart-scroll svg{ display:block; }
+  .analysis-chart-readout{
+    margin-top:10px;
+    font-size:13px;
+    color:var(--ink-soft);
+    text-align:center;
+    min-height:18px;
+  }
+  .am-bar{ cursor:pointer; }
+  .am-hit{ fill:transparent; }
+  .am-fill{
+    fill:var(--accent-soft);
+    stroke:var(--border);
+    stroke-width:1;
+    transition:fill .15s ease, stroke .15s ease;
+  }
+  .am-bar:hover .am-fill, .am-bar:focus-visible .am-fill{
+    fill:var(--accent-2);
+    stroke:var(--accent-2);
+  }
+  .am-bar.am-current .am-fill{ fill:var(--accent); stroke:var(--accent); }
+  .am-bar.am-selected .am-fill{ stroke:var(--accent-2); stroke-width:2; }
+  .am-warn{ fill:var(--red); }
+  .am-value{
+    font-size:9px;
+    font-weight:700;
+    fill:var(--ink-soft);
+    font-variant-numeric:tabular-nums;
+  }
+  .am-bar.am-current .am-value{ fill:var(--accent-2); }
+  .am-label{ font-size:9px; font-weight:600; fill:var(--ink-soft); }
+  .am-bar.am-current .am-label,
+  .am-bar.am-selected .am-label{ fill:var(--accent-2); font-weight:700; }
+  .analysis-item-row{
+    position:relative;
+    overflow:hidden;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:var(--card-2);
+    margin-bottom:8px;
+  }
+  .analysis-item-row:last-child{ margin-bottom:0; }
+  .analysis-item-bar{
+    position:absolute;
+    top:0; left:0; bottom:0;
+    background:var(--accent-soft);
+    z-index:0;
+  }
+  .analysis-item-content{
+    position:relative;
+    z-index:1;
+    border-bottom:none;
+    padding:10px 12px;
+  }
+
   @media (min-width:640px){
     main{ max-width:820px; padding:26px 24px 96px; }
     header.topbar{ padding:14px 22px; }
@@ -885,6 +954,7 @@
     <button type="button" data-nav="calculator">Exchange</button>
     <button type="button" data-nav="tracker-dashboard">Tracker</button>
     <button type="button" data-nav="listcalc">Lists</button>
+    <button type="button" data-nav="analysis">Analysis</button>
   </div>
   <button type="button" class="settings-icon-btn" data-nav="settings" title="Settings">⚙️</button>
 </header>
@@ -908,6 +978,10 @@
       <div class="mode-card" data-nav="listcalc" tabindex="0" role="button">
         <div class="icon">🧾</div>
         <h3>List calculator</h3>
+      </div>
+      <div class="mode-card" data-nav="analysis" tabindex="0" role="button">
+        <div class="icon">📊</div>
+        <h3>Analysis</h3>
       </div>
     </div>
   </section>
@@ -1205,6 +1279,27 @@
       <button type="button" class="btn secondary" id="listSaveBtn">Save list</button>
       <button type="button" class="btn secondary" id="listAddToLedgerBtn">Add to today's ledger</button>
       <button type="button" class="btn secondary" id="listBrowseBtn" style="display:none;">Browse lists</button>
+    </div>
+  </section>
+
+  <!-- ANALYSIS -->
+  <section class="view" id="view-analysis">
+    <div class="calendar-card" id="analysisChartCard" tabindex="0" role="button" aria-label="Monthly spending chart. Press Enter to browse months.">
+      <h3>Monthly spending</h3>
+      <div class="analysis-chart-scroll" id="analysisChartScroll"></div>
+      <div class="analysis-chart-readout" id="analysisChartReadout"></div>
+    </div>
+
+    <div id="analysisDrilldown"></div>
+
+    <div class="card" tabindex="0">
+      <h3>Overview</h3>
+      <div class="summary-grid" id="analysisStatsGrid"></div>
+    </div>
+
+    <div class="card" tabindex="0">
+      <h3>Top spending items (all time)</h3>
+      <div id="analysisTopItems"></div>
     </div>
   </section>
 
@@ -1829,7 +1924,8 @@
     "calculator":"Currency exchange",
     "tracker-dashboard":"Finance tracker",
     "tracker-ledger":"Daily ledger",
-    "listcalc":"List calculator"
+    "listcalc":"List calculator",
+    "analysis":"Analysis"
   };
 
   var navStack = [];
@@ -1870,6 +1966,7 @@
     if(view === "settings") renderSettings();
     if(view === "tracker-dashboard") renderDashboard();
     if(view === "listcalc") renderListCalc();
+    if(view === "analysis") renderAnalysis();
     if(view === "tracker-ledger"){
       ensureMonthsUpTo(selectedMonthKey());
       renderLedger();
@@ -1939,6 +2036,12 @@
       backBtnAbsorbed = true;
       return;
     }
+    if(isInChartNavMode()){
+      e.preventDefault();
+      focusChartCard();
+      backBtnAbsorbed = true;
+      return;
+    }
     if(isTextFieldFocused()){
       e.preventDefault();
       document.activeElement.blur();
@@ -1958,6 +2061,10 @@
       }
       if(isInCalendarNavMode()){
         focusCalendarCard();
+        return;
+      }
+      if(isInChartNavMode()){
+        focusChartCard();
         return;
       }
     }
@@ -1980,6 +2087,11 @@
       // through to the normal navigate-back logic below.
       if(isInCalendarNavMode()){
         focusCalendarCard();
+        history.pushState({view:currentView}, "", "#"+currentView);
+        return;
+      }
+      if(isInChartNavMode()){
+        focusChartCard();
         history.pushState({view:currentView}, "", "#"+currentView);
         return;
       }
@@ -2095,6 +2207,49 @@
     return best;
   }
 
+  // ---------- Analysis chart navigation mode ----------
+  // Mirrors the calendar's enter-a-nav-mode pattern above: the chart card is
+  // a single stop in the outer roving-focus order, Enter/Space on it drops
+  // into a 1D nav mode among the individual month bars (ArrowLeft/Right —
+  // there's no second row, so ArrowUp/Down just step back out), and the app
+  // back button, while inside that mode, steps back out to the card instead
+  // of leaving the page (see the isInChartNavMode() checks in the
+  // back-button handlers above).
+  function isInChartNavMode(){
+    var ae = document.activeElement;
+    return !!(ae && ae.classList && ae.classList.contains("am-bar"));
+  }
+
+  function focusChartCard(){
+    var card = document.getElementById("analysisChartCard");
+    if(card) card.focus();
+  }
+
+  function enterChartNav(){
+    var scroll = document.getElementById("analysisChartScroll");
+    if(!scroll) return;
+    var todayKey = currentMonthKey();
+    var bar = scroll.querySelector('.am-bar[data-month-key="'+todayKey+'"]') || scroll.querySelector(".am-bar");
+    if(!bar) return;
+    bar.focus();
+    if(bar.scrollIntoView) bar.scrollIntoView({block:"nearest", inline:"center"});
+  }
+
+  function chartNavMove(key){
+    var bar = document.activeElement;
+    if(!bar || !bar.classList || !bar.classList.contains("am-bar")) return;
+    var scroll = document.getElementById("analysisChartScroll");
+    if(!scroll) return;
+    var all = Array.prototype.slice.call(scroll.querySelectorAll(".am-bar"));
+    var idx = all.indexOf(bar);
+    if(idx === -1) return;
+    var targetIdx = key === "ArrowLeft" ? idx - 1 : idx + 1;
+    if(targetIdx < 0 || targetIdx >= all.length) return;
+    var target = all[targetIdx];
+    target.focus();
+    if(target.scrollIntoView) target.scrollIntoView({block:"nearest", inline:"center"});
+  }
+
   document.addEventListener("keydown", function(e){
     // Everything below is the custom d-pad/keypad navigation system
     // (roving focus, calendar-grid nav mode, horizontal ArrowLeft/Right,
@@ -2114,6 +2269,21 @@
         enterCalendarNav();
         return;
       }
+      if(t && t.id === "analysisChartCard"){
+        e.preventDefault();
+        enterChartNav();
+        return;
+      }
+      if(t && t.classList && t.classList.contains("am-bar")){
+        // SVG <g> elements don't reliably support .click() in every browser,
+        // so this bar-activation case is handled directly here instead of
+        // falling through to the generic role="button" -> t.click() branch
+        // below (which every other custom "role=button" widget in the app
+        // uses safely, since those are all plain HTML elements).
+        e.preventDefault();
+        selectAnalysisMonth(t.getAttribute("data-month-key"));
+        return;
+      }
       if(t && t.getAttribute && t.getAttribute("role") === "button"){
         e.preventDefault();
         t.click();
@@ -2130,6 +2300,20 @@
       if(isInCalendarNavMode()){
         e.preventDefault();
         calendarGridMove(e.key);
+        return;
+      }
+      // Chart-navigation mode (entered via Enter/Space on the Analysis
+      // chart card) is a single row, so only ArrowLeft/ArrowRight move
+      // between month bars; ArrowUp/ArrowDown step back out to the card,
+      // mirroring how the back button exits this mode (see isInChartNavMode
+      // checks in the back-button handlers above).
+      if(isInChartNavMode()){
+        e.preventDefault();
+        if(e.key === "ArrowLeft" || e.key === "ArrowRight"){
+          chartNavMove(e.key);
+        } else {
+          focusChartCard();
+        }
         return;
       }
     }
@@ -2188,7 +2372,7 @@
   // "1"/"2"/"3" jump straight to each mode card's destination, matching the
   // order the cards are shown in, for keypad users who'd rather not roll
   // through with arrows.
-  var LANDING_KEY_NAV = {"1": "calculator", "2": "tracker-dashboard", "3": "listcalc"};
+  var LANDING_KEY_NAV = {"1": "calculator", "2": "tracker-dashboard", "3": "listcalc", "4": "analysis"};
   document.addEventListener("keydown", function(e){
     if(!state.settings.keypadUser) return;
     if(currentView !== "landing") return;
@@ -3539,6 +3723,285 @@
       }, {title:"Delete list", okText:"Delete"});
     }
   });
+
+  // ---------- ANALYSIS ----------
+  // Spending trends across every tracked month, derived entirely from
+  // computeChain()/state.months — no totals are recomputed independently,
+  // so these numbers always agree with what the Dashboard/Ledger show for
+  // the same months.
+
+  var analysisSelectedMonth = null; // ephemeral: which month's bar is expanded below the chart
+
+  // Item names are grouped by trimmed + lowercased description, so "Groceries",
+  // "groceries " and "GROCERIES" all fold into one bucket as long as they're
+  // spelled the same underneath — matching how the user says they name things.
+  function normalizeItemName(name){
+    return String(name||"").trim().toLowerCase();
+  }
+
+  function monthKeyToShortLabel(key){
+    var parts = key.split("-");
+    var y = parts[0].slice(2), m = parseInt(parts[1],10);
+    var names = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return names[m-1] + " " + y;
+  }
+
+  // Every month from the user's declared tracking-start (financialBase.startMonthKey,
+  // falling back to the earliest month the app has any record of — the same
+  // fallback computeChain() itself uses) through the latest month state.months
+  // knows about. ensureMonthsUpTo() keeps state.months contiguous, so this is
+  // just "every existing key from the start onward."
+  function analysisTrackedMonthKeys(){
+    var keys = Object.keys(state.months).sort(compareMonthKeys);
+    if(!keys.length) return [];
+    var startKey = state.financialBase.startMonthKey || keys[0];
+    return keys.filter(function(k){ return compareMonthKeys(k, startKey) >= 0; });
+  }
+
+  // How many of a tracked month's days have actually elapsed — the current
+  // real month only counts up to today, so "average per day" isn't diluted
+  // by days that haven't happened yet.
+  function elapsedDaysForMonth(key){
+    var today = currentMonthKey();
+    if(key === today) return new Date().getDate();
+    if(compareMonthKeys(key, today) > 0) return 0;
+    return daysInMonth(key);
+  }
+
+  // All-time "what did I spend it on" ranking: every logged custom expense
+  // across the tracked months, grouped by normalized description, PLUS each
+  // fixed recurring expense (rent, phone, etc.) counted once per tracked
+  // month — since those apply identically to every month, "occurrences" for
+  // a fixed item is just the number of tracked months.
+  function aggregateAllTimeItems(monthKeys){
+    var totals = {};
+    monthKeys.forEach(function(mk){
+      var entry = state.months[mk] || defaultMonthEntry();
+      (entry.customExpenses||[]).forEach(function(e){
+        var norm = normalizeItemName(e.description);
+        if(!norm) return;
+        var amt = (Number(e.amountJPY)||0) * (Number(e.multiplier)||1);
+        if(!totals[norm]) totals[norm] = { label: String(e.description).trim(), total:0, count:0, fixed:false };
+        totals[norm].total += amt;
+        totals[norm].count += 1;
+      });
+    });
+    state.financialBase.recurringExpenses.forEach(function(exp){
+      var norm = normalizeItemName(exp.name);
+      var amt = (Number(exp.amountJPY)||0) * monthKeys.length;
+      if(!norm || amt <= 0) return;
+      if(!totals[norm]) totals[norm] = { label: String(exp.name).trim(), total:0, count:0, fixed:false };
+      totals[norm].total += amt;
+      totals[norm].count += monthKeys.length;
+      totals[norm].fixed = true;
+    });
+    return Object.keys(totals).map(function(k){ return totals[k]; }).sort(function(a,b){ return b.total - a.total; });
+  }
+
+  function analysisStatCard(label, value, sub, extraClass){
+    return '<div class="summary-card'+(extraClass?(' '+extraClass):'')+'"><div class="label">'+label+'</div><div class="value">'+value+'</div>'+
+      (sub ? ('<div class="sub">'+sub+'</div>') : '') + '</div>';
+  }
+
+  function analysisItemRowHtml(row, maxTotal, rate){
+    var pct = maxTotal > 0 ? Math.max(4, Math.round(row.total/maxTotal*100)) : 0;
+    var countLabel = row.fixed ? ("fixed · " + row.count + " mo") : ("×" + row.count);
+    return '<div class="analysis-item-row">' +
+        '<div class="analysis-item-bar" style="width:'+pct+'%"></div>' +
+        '<div class="expense-row analysis-item-content">' +
+          '<div class="desc">'+escapeAttr(row.label)+' <span class="expense-fund-tag">'+countLabel+'</span></div>' +
+          '<div class="amt-block"><div class="jpy">¥'+fmt(row.total)+'</div><div class="clp-line">CLP '+fmt(row.total*rate)+'</div></div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function readoutTextFor(key){
+    var res = computeChain(key);
+    var status = res.deficitJPY > 0 ? " — over budget" : "";
+    return monthKeyToLabel(key) + ": ¥" + fmt(res.totalExpenses) + " spent" + status;
+  }
+
+  function updateAnalysisReadout(key){
+    var el = document.getElementById("analysisChartReadout");
+    if(el) el.textContent = key ? readoutTextFor(key) : "Select a month above to see what you spent it on.";
+  }
+
+  function renderAnalysisChart(monthKeys, monthResults){
+    var scroll = document.getElementById("analysisChartScroll");
+    if(!monthKeys.length){
+      scroll.innerHTML = '<div class="expense-empty">No tracked months yet.</div>';
+      return;
+    }
+    var colW = 50, barW = 30;
+    var padTop = 24, barAreaH = 100, baseline = padTop + barAreaH;
+    var labelY = baseline + 16;
+    var svgH = labelY + 12;
+    var svgW = colW * monthKeys.length + 4;
+    var maxTotal = 0, maxIdx = 0;
+    monthResults.forEach(function(r,i){ if(r.totalExpenses > maxTotal){ maxTotal = r.totalExpenses; maxIdx = i; } });
+    var todayKey = currentMonthKey();
+
+    var parts = monthKeys.map(function(key, i){
+      var res = monthResults[i];
+      var val = res.totalExpenses;
+      var h = maxTotal > 0 ? (val/maxTotal) * barAreaH : 0;
+      if(val > 0 && h < 3) h = 3;
+      var x = i*colW + 2;
+      var colInnerW = colW - 4;
+      var barX = x + (colInnerW - barW)/2;
+      var isCurrent = (key === todayKey);
+      var isMax = (i === maxIdx && val > 0);
+      var isSelected = (key === analysisSelectedMonth);
+      var overBudget = res.deficitJPY > 0;
+      var cls = "am-bar" + (isCurrent ? " am-current" : "") + (isSelected ? " am-selected" : "");
+      var ariaLabel = monthKeyToLabel(key) + ": ¥" + fmt(val) + " spent" +
+        (overBudget ? ", over budget" : "") + (isCurrent ? " (current month)" : "");
+      var valueY = Math.max(padTop - 2, baseline - h - 6);
+      var html = '<g class="'+cls+'" tabindex="-1" role="button" data-month-key="'+key+'" aria-label="'+escapeAttr(ariaLabel)+'">' +
+        '<rect class="am-hit" x="'+x+'" y="'+padTop+'" width="'+colInnerW+'" height="'+barAreaH+'"></rect>';
+      if(h > 0){
+        html += '<rect class="am-fill" x="'+barX+'" y="'+(baseline-h)+'" width="'+barW+'" height="'+h+'" rx="4"></rect>';
+      }
+      if(overBudget){
+        html += '<rect class="am-warn" x="'+barX+'" y="'+(baseline-h)+'" width="'+barW+'" height="4" rx="2"></rect>';
+      }
+      if(isCurrent || isMax){
+        html += '<text class="am-value" x="'+(x+colInnerW/2)+'" y="'+valueY+'" text-anchor="middle">'+fmtCompact(val)+'</text>';
+      }
+      html += '<text class="am-label" x="'+(x+colInnerW/2)+'" y="'+labelY+'" text-anchor="middle">'+monthKeyToShortLabel(key)+'</text>';
+      html += '</g>';
+      return html;
+    }).join("");
+
+    scroll.innerHTML = '<svg viewBox="0 0 '+svgW+' '+svgH+'" width="'+svgW+'" height="'+svgH+'" role="img" aria-label="Monthly spending chart">'+parts+'</svg>';
+  }
+
+  function renderAnalysisDrilldown(){
+    var container = document.getElementById("analysisDrilldown");
+    if(!analysisSelectedMonth){
+      container.innerHTML = "";
+      return;
+    }
+    var key = analysisSelectedMonth;
+    var res = computeChain(key);
+    var entry = state.months[key] || defaultMonthEntry();
+    var rate = state.settings.exchangeRates.JPY_CLP;
+    var fixedTotal = recurringTotalJPY();
+
+    var groups = {};
+    (entry.customExpenses||[]).forEach(function(e){
+      var norm = normalizeItemName(e.description);
+      if(!norm) return;
+      var amt = (Number(e.amountJPY)||0) * (Number(e.multiplier)||1);
+      if(!groups[norm]) groups[norm] = { label: String(e.description).trim(), total:0, count:0, fixed:false };
+      groups[norm].total += amt;
+      groups[norm].count += 1;
+    });
+    var rows = Object.keys(groups).map(function(k){ return groups[k]; }).sort(function(a,b){ return b.total - a.total; });
+    var maxItem = rows.length ? rows[0].total : 0;
+    var itemsHtml = rows.length
+      ? rows.map(function(row){ return analysisItemRowHtml(row, maxItem, rate); }).join("")
+      : '<div class="expense-empty">No expenses logged this month.</div>';
+
+    var budgetNote = res.deficitJPY > 0
+      ? '<div class="deficit-banner">Over budget by ¥'+fmt(res.deficitJPY)+' (CLP '+fmt(res.deficitJPY*rate)+')</div>'
+      : '<div class="ok-banner">Within stipend budget this month.</div>';
+
+    container.innerHTML =
+      '<div class="card">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">' +
+          '<h3 style="margin:0;">'+escapeAttr(monthKeyToLabel(key))+'</h3>' +
+          '<button type="button" class="btn ghost" id="analysisDrilldownCloseBtn">Close</button>' +
+        '</div>' +
+        budgetNote +
+        '<table class="expense-list"><tbody>' +
+          moneyRow("Fixed expenses", fixedTotal) +
+          moneyRow("Variable expenses", res.customTotal + res.customSavingsTotal) +
+        '</tbody></table>' +
+        '<h3 style="margin-top:16px;">Items this month</h3>' +
+        itemsHtml +
+        '<p class="rate-note" style="text-align:left;margin-bottom:0;">Stipend '+(entry.scholarshipReceived ? "received" : "not received")+' this month.</p>' +
+      '</div>';
+  }
+
+  function selectAnalysisMonth(monthKey){
+    if(!monthKey) return;
+    analysisSelectedMonth = (analysisSelectedMonth === monthKey) ? null : monthKey;
+    updateAnalysisReadout(analysisSelectedMonth);
+    renderAnalysisDrilldown();
+    document.querySelectorAll("#analysisChartScroll .am-bar").forEach(function(g){
+      g.classList.toggle("am-selected", g.getAttribute("data-month-key") === analysisSelectedMonth);
+    });
+  }
+
+  document.getElementById("analysisChartScroll").addEventListener("click", function(e){
+    var bar = e.target.closest(".am-bar");
+    if(!bar) return;
+    selectAnalysisMonth(bar.getAttribute("data-month-key"));
+  });
+  document.getElementById("analysisChartScroll").addEventListener("focusin", function(e){
+    var bar = e.target.closest(".am-bar");
+    if(bar) updateAnalysisReadout(bar.getAttribute("data-month-key"));
+  });
+  document.getElementById("analysisDrilldown").addEventListener("click", function(e){
+    if(e.target.closest("#analysisDrilldownCloseBtn")) selectAnalysisMonth(analysisSelectedMonth);
+  });
+
+  function renderAnalysis(){
+    ensureMonthsUpTo(currentMonthKey());
+    var monthKeys = analysisTrackedMonthKeys();
+    var rate = state.settings.exchangeRates.JPY_CLP;
+
+    if(!monthKeys.length){
+      document.getElementById("analysisStatsGrid").innerHTML =
+        '<div class="summary-card span-full"><div class="label">No data yet</div><div class="value">—</div></div>';
+      document.getElementById("analysisTopItems").innerHTML = '<div class="expense-empty">No expenses logged yet.</div>';
+      analysisSelectedMonth = null;
+      renderAnalysisChart([], []);
+      renderAnalysisDrilldown();
+      updateAnalysisReadout(null);
+      return;
+    }
+
+    var monthResults = monthKeys.map(function(k){ return computeChain(k); });
+
+    var totalSpent = 0, overBudgetMonths = 0, maxIdx = 0;
+    monthResults.forEach(function(res, i){
+      totalSpent += res.totalExpenses;
+      if(res.deficitJPY > 0) overBudgetMonths++;
+      if(res.totalExpenses > monthResults[maxIdx].totalExpenses) maxIdx = i;
+    });
+    var stipendCoveredMonths = monthKeys.length - overBudgetMonths;
+    var avgMonthly = totalSpent / monthKeys.length;
+    var totalElapsedDays = monthKeys.reduce(function(sum,k){ return sum + elapsedDaysForMonth(k); }, 0);
+    var avgDaily = totalElapsedDays > 0 ? totalSpent / totalElapsedDays : 0;
+    var savingsChangeCLP = monthResults[monthResults.length-1].savingsAfterCLP - state.financialBase.initialSavingsCLP;
+    var maxVal = monthResults[maxIdx].totalExpenses;
+
+    var statsHtml =
+      '<div class="summary-card span-full"><div class="label">Total spent (tracked months)</div>' +
+        '<div class="value-row"><div class="value">¥'+fmt(totalSpent)+'</div><div class="sub">CLP '+fmt(totalSpent*rate)+'</div></div></div>' +
+      analysisStatCard("Average per month", "¥"+fmt(avgMonthly), "CLP "+fmt(avgMonthly*rate)) +
+      analysisStatCard("Highest month", monthKeyToShortLabel(monthKeys[maxIdx]), "¥"+fmt(maxVal)+" · CLP "+fmt(maxVal*rate)) +
+      analysisStatCard("Average per day", "¥"+fmt(avgDaily), "CLP "+fmt(avgDaily*rate)) +
+      analysisStatCard("Over budget", overBudgetMonths+" of "+monthKeys.length+" months",
+        stipendCoveredMonths+" fully covered by stipend", overBudgetMonths > 0 ? "warn" : "ok") +
+      analysisStatCard("Savings change", (savingsChangeCLP >= 0 ? "+" : "")+"CLP "+fmt(savingsChangeCLP),
+        "since tracking started", savingsChangeCLP < 0 ? "warn" : "ok");
+    document.getElementById("analysisStatsGrid").innerHTML = statsHtml;
+
+    renderAnalysisChart(monthKeys, monthResults);
+
+    var items = aggregateAllTimeItems(monthKeys);
+    var maxItemTotal = items.length ? items[0].total : 0;
+    document.getElementById("analysisTopItems").innerHTML = items.length
+      ? items.map(function(row){ return analysisItemRowHtml(row, maxItemTotal, rate); }).join("")
+      : '<div class="expense-empty">No expenses logged yet.</div>';
+
+    if(analysisSelectedMonth && monthKeys.indexOf(analysisSelectedMonth) === -1) analysisSelectedMonth = null;
+    updateAnalysisReadout(analysisSelectedMonth);
+    renderAnalysisDrilldown();
+  }
 
   // ---------- init ----------
   function init(){

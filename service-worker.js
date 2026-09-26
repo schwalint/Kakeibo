@@ -3,7 +3,7 @@
 // fonts, or API calls), so caching just these few files is enough for
 // the app to load and run fully offline after the first visit.
 
-var CACHE_NAME = "kakeibo-cache-v5";
+var CACHE_NAME = "kakeibo-cache-v6";
 var FILES_TO_CACHE = [
   "./",
   "./index.html",
